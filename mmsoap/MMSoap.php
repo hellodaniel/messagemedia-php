@@ -69,11 +69,16 @@ class MMSoap {
      */
     public function sendMessages($recipients, $message, $scheduled=null, $origin=null) {
         $recipientsStruct = array();
-
+        
         foreach ($recipients as $recipient) {
-            $recipientsStruct[] = new StructRecipientType($recipient);
+            
+            if (is_array($recipient)) 
+                $recipientsStruct[] = new StructRecipientType($recipient[0], $recipient[1]);
+            else 
+                $recipientsStruct[] = new StructRecipientType($recipient);
+        
         }
-
+        
         $msgList = array(new StructMessageType(
             $origin,
             new StructRecipientsType($recipientsStruct),
