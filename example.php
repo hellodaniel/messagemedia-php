@@ -15,22 +15,26 @@
  */
 
 // Uncomment the following line for debugging information
-//ini_set('display_errors', true);
+// ini_set('display_errors', true);
 
 require('mmsoap/MMSoap.php');
 
 // Set up account details
-$username = 'YourUserName001';
-$password = 'y0urpassw0rd';
+$username = 'username';
+$password = 'password';
 
 // Set up sendMessage parameters
+// A list of fictitious numbers provisioned for use in fils, radio, television is available here: 
 // http://www.acma.gov.au/Citizen/Consumer-info/All-about-numbers/Special-numbers/fictitious-numbers-for-radio-film-and-television-i-acma
-$recipients = array('+61491570156');
-$origin     =       "+61491570157";
-$message    = 'Hello from messagemedia-php!';
 
-// for scheduled messages lets schedule a message 1 minte in the future
-$oneMinuteInTheFuture = mktime(date("H"), date("i")+1, date("s"), date("m")  , date("d"), date("Y"));
+
+// Recipients has 3 valid formats: 
+// a single number as a string, e.g. '+61491570157'
+// an array of numbers, e.g.: ['+61491570157', '+61491570158']
+// a multidimensional array of numbers with unique IDs, e.g. [['+61491570157', '01'], ['+61491570158', '02']]
+$recipients = array(array('+0491 570 157', uniqid())); 
+$origin     = '+61491570157';
+$message    = 'Hello from messagemedia-php!';
 
 // Capture the wsdl host
 //$host = parse_url(WsdlClass::VALUE_WSDL_URL, PHP_URL_HOST);
@@ -40,7 +44,8 @@ $oneMinuteInTheFuture = mktime(date("H"), date("i")+1, date("s"), date("m")  , d
 //$context = stream_context_create($opts);
 
 // Set up SOAP Options
-$options = array( // Put options here to override defaults
+$options = array( 
+    // Put options here to override defaults
     // Example Proxy Options
 
     //WsdlClass::WSDL_PROXY_HOST => '127.0.0.1',
@@ -57,11 +62,14 @@ $soap = new MMSoap($username, $password, $options);
 // Check user info
 echo "\n** User Info\n";
 $response       = $soap->getUserInfo();
-if ($response instanceof SoapFault) {
+
+// If an error is returned then exit
+if ($response instanceof SoapFault) 
     exit('Error: ' . $response->getMessage());
-}
+
 $result         = $response->getResult();
 $accountDetails = $result->accountDetails;
+
 echo 'Account type: ' . $accountDetails->type . "\n";
 echo $result->accountDetails->creditRemaining . " credits remaining\n";
 
@@ -83,9 +91,11 @@ $response = $soap->sendMessages($recipients, $message, null, $origin);
 $result   = $response->getResult();
 echo $result->sent . ' sent / ' . $result->scheduled . ' scheduled / ' . $result->failed . " failed\n";
 
-// Example of sending a message at a scheduled date and time
-/*echo "\n** Schedule A Message\n";
+/* // Example of sending a message at a scheduled date and time
+echo "\n** Schedule A Message\n";
+$oneMinuteInTheFuture = mktime(date("H"), date("i")+1, date("s"), date("m")  , date("d"), date("Y"));
 echo "Scheduling to send '$message' on ".date('l jS \of F Y h:iA',$oneMinuteInTheFuture)." to " . implode(', ', $recipients) . "\n";
+
 // This is an example of the date format $scheduled = "2016-07-28T17:10:00";
 $scheduled = date('Y-m-j\TG:i:s',$oneMinuteInTheFuture);
 $response = $soap->sendMessages($recipients, $message, $scheduled, $origin);
@@ -98,10 +108,14 @@ echo "\n** Get Blocked Numbers\n";
 $response   = $soap->getBlockedNumbers();
 $result     = $response->getResult();
 $recipients = $result->recipients->recipient;
-if (isset($recipients)) {
-    foreach ($recipients as $recipient) {
+
+if (isset($recipients)) 
+    
+    foreach ($recipients as $recipient) 
         echo 'The number ' . $recipient . " is blocked\n";
-    }
-} else {
+        
+else     
     echo "No numbers in your blocked list\n";
-}
+    
+
+
